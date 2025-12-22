@@ -64,6 +64,8 @@ const Movies = () => {
       .split(',')
       .map(g => g.trim())
       .filter(g => g.length > 0);
+      .map(g => ({ title: g }));
+      
 
     uploadData.append('genre', JSON.stringify(genreArray));
 
