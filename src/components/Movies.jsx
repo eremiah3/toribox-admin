@@ -67,6 +67,8 @@ const Movies = () => {
       .split(',')
       .map(g => g.trim())
       .filter(g => g.length > 0);
+      .map(g => ({ title: g }));
+      
 
     if (genreList.length === 0) {
       alert('Please enter at least one genre');
