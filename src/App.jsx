@@ -5,7 +5,8 @@ import Login from './components/Login.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import Movies from './components/Movies.jsx';
 import Episodes from './components/Episodes.jsx';
-import BunnyVideos from './components/BunnyVideos.jsx';
+import Transactions from './components/Transactions.jsx';
+import Wallet from './components/Wallet.jsx';
 import Navbar from './components/Navbar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
@@ -40,6 +41,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminEmail');
     setIsAuthenticated(false);
     setIsSidebarOpen(false); // Close sidebar on logout
   };
@@ -71,7 +73,8 @@ function App() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/movies" element={<Movies apiBaseUrl={API_BASE_URL} />} />
               <Route path="/episodes" element={<Episodes apiBaseUrl={API_BASE_URL} />} />
-              <Route path="/bunny" element={<BunnyVideos apiBaseUrl={API_BASE_URL} />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/wallet" element={<Wallet />} />
               {/* Add more routes here later */}
             </Routes>
           </div>

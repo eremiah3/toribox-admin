@@ -73,14 +73,14 @@ const Dashboard = () => {
           <p>Add episodes to series</p>
         </Link>
 
-        {/* <Link to="/trending" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <h2>🔥 Trending Movies</h2>
-          <p>View & edit trending movies</p>
-        </Link> */}
+        <Link to="/transactions" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <h2>💳 Transactions</h2>
+          <p>View all user transactions</p>
+        </Link>
 
-        <Link to="/bunny" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <h2>🐰 Bunny Videos</h2>
-          <p>List & manage videos</p>
+        <Link to="/wallet" className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <h2>💰 Wallet</h2>
+          <p>Manage wallet & add funds</p>
         </Link>
       </div>
     </div>

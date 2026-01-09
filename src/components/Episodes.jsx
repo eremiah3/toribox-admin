@@ -85,24 +85,34 @@ const Episodes = () => {
     uploadData.append('video', formData.video);
 
     try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        alert('You must be logged in to upload. Please login again.');
+        return;
+      }
+
       const res = await fetch(`${API_BASE}/api/movies/episode/upload`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: uploadData,
       });
 
       if (res.ok) {
         alert('Episode uploaded successfully!');
         setFormData({ movieId: formData.movieId, episodeNumber: '', video: null });
+        setShowUploadModal(false);
         fetchEpisodes(formData.movieId);
       } else {
-        const error = await res.text();
-        alert('Upload failed: ' + error);
+        const error = await res.json().catch(() => ({}));
+        alert('Upload failed: ' + (error.message || error.error?.message || 'Unknown error'));
       }
     } catch (err) {
+      console.error(err);
       alert('Upload error');
     } finally {
       setUploading(false);
-      setShowUploadModal(false);
     }
   };
 

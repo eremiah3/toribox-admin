@@ -8,7 +8,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/', name: 'Dashboard', icon: '🏠' },
     { path: '/movies', name: 'Movies', icon: '🎬' },
     { path: '/episodes', name: 'Episodes', icon: '📺' },
-    { path: '/bunny', name: 'Bunny Videos', icon: '🐰' },
+    { path: '/transactions', name: 'Transactions', icon: '💳' },
+    { path: '/wallet', name: 'Wallet', icon: '💰' },
   ];
 
   return (
