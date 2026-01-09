@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const API_BASE = 'https://toribox-api.onrender.com';
+const API_BASE = "https://toribox-api.onrender.com";
 
 const Wallet = () => {
   const [walletBalance, setWalletBalance] = useState(null);
@@ -8,10 +8,10 @@ const Wallet = () => {
   const [showPaystackModal, setShowPaystackModal] = useState(false);
   const [processingPaystack, setProcessingPaystack] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
-    amount: '',
-    coins: '',
-    currency: 'NGN',
+    fullName: "",
+    amount: "",
+    coins: "",
+    currency: "NGN",
   });
 
   useEffect(() => {
@@ -21,26 +21,26 @@ const Wallet = () => {
   const fetchWalletBalance = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const email = localStorage.getItem('adminEmail');
-      
+      const token = localStorage.getItem("adminToken");
+      const email = localStorage.getItem("adminEmail");
+
       if (!token || !email) {
-        throw new Error('Not authenticated');
+        throw new Error("Not authenticated");
       }
 
       const res = await fetch(`${API_BASE}/api/users/wallet/get`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error('Failed to fetch wallet');
-      
+      if (!res.ok) throw new Error("Failed to fetch wallet");
+
       const data = await res.json();
       setWalletBalance(data.wallet?.balance || 0);
     } catch (err) {
-      console.error('Fetch error:', err);
-      alert('Failed to load wallet: ' + err.message);
+      console.error("Fetch error:", err);
+      alert("Failed to load wallet: " + err.message);
       setWalletBalance(0);
     } finally {
       setLoading(false);
@@ -58,21 +58,21 @@ const Wallet = () => {
     e.preventDefault();
 
     if (!formData.fullName || !formData.amount || !formData.coins) {
-      alert('All fields are required');
+      alert("All fields are required");
       return;
     }
 
     setProcessingPaystack(true);
 
     try {
-      const token = localStorage.getItem('adminToken');
-      const email = localStorage.getItem('adminEmail');
+      const token = localStorage.getItem("adminToken");
+      const email = localStorage.getItem("adminEmail");
 
       const res = await fetch(`${API_BASE}/api/paystack/generate/session`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           email,
@@ -85,22 +85,21 @@ const Wallet = () => {
 
       if (!res.ok) {
         const error = await res.json().catch(() => ({}));
-        throw new Error(error.message || 'Failed to generate Paystack session');
+        throw new Error(error.message || "Failed to generate Paystack session");
       }
 
       const data = await res.json();
-      
+
       if (data.session?.authorization_url) {
-        // Redirect to Paystack
-        window.open(data.session.authorization_url, '_blank');
+        window.open(data.session.authorization_url, "_blank");
         setShowPaystackModal(false);
-        setFormData({ fullName: '', amount: '', coins: '', currency: 'NGN' });
+        setFormData({ fullName: "", amount: "", coins: "", currency: "NGN" });
       } else {
-        alert('No payment URL received from server');
+        alert("No payment URL received from server");
       }
     } catch (err) {
-      console.error('Error:', err);
-      alert('Failed to process payment: ' + err.message);
+      console.error("Error:", err);
+      alert("Failed to process payment: " + err.message);
     } finally {
       setProcessingPaystack(false);
     }
@@ -116,58 +115,83 @@ const Wallet = () => {
 
   return (
     <div className="section fade-in">
-      <h1 style={{ fontSize: '2.8rem', margin: '2rem 0', color: 'var(--primary-color)', textAlign: 'center' }}>
+      <h1
+        style={{
+          fontSize: "2.8rem",
+          margin: "2rem 0",
+          color: "var(--primary-color)",
+          textAlign: "center",
+        }}
+      >
         Wallet Management
       </h1>
 
-      {/* Wallet Balance Card */}
-      <div className="card" style={{
-        maxWidth: '600px',
-        margin: '2rem auto',
-        padding: '3rem 2rem',
-        textAlign: 'center',
-        backgroundColor: 'linear-gradient(135deg, var(--primary-color), #667eea)',
-        backgroundImage: 'linear-gradient(135deg, var(--primary-color), #667eea)',
-        color: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.2)'
-      }}>
-        <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', opacity: 0.9 }}>Wallet Balance</h2>
-        <div style={{ fontSize: '3.5rem', fontWeight: 'bold', margin: '1rem 0' }}>
-          ₦{walletBalance?.toLocaleString() || '0'}
+      <div
+        className="card"
+        style={{
+          maxWidth: "600px",
+          margin: "2rem auto",
+          padding: "3rem 2rem",
+          textAlign: "center",
+          backgroundColor:
+            "linear-gradient(135deg, var(--primary-color), #667eea)",
+          backgroundImage:
+            "linear-gradient(135deg, var(--primary-color), #667eea)",
+          color: "white",
+          borderRadius: "12px",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+        }}
+      >
+        <h2 style={{ fontSize: "1.2rem", marginBottom: "1rem", opacity: 0.9 }}>
+          Wallet Balance
+        </h2>
+        <div
+          style={{ fontSize: "3.5rem", fontWeight: "bold", margin: "1rem 0" }}
+        >
+          ₦{walletBalance?.toLocaleString() || "0"}
         </div>
-        <p style={{ fontSize: '0.95rem', opacity: 0.85 }}>Available balance for transactions</p>
+        <p style={{ fontSize: "0.95rem", opacity: 0.85 }}>
+          Available balance for transactions
+        </p>
       </div>
 
       {/* Add Funds Button */}
-      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
         <button
           className="btn"
           onClick={() => setShowPaystackModal(true)}
           style={{
-            padding: '1rem 3rem',
-            fontSize: '1.1rem',
-            backgroundColor: 'var(--primary-color)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
+            padding: "1rem 3rem",
+            fontSize: "1.1rem",
+            backgroundColor: "var(--primary-color)",
+            color: "white",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontWeight: "bold",
           }}
         >
           💳 Add Funds via Paystack
         </button>
       </div>
 
-      {/* Paystack Payment Modal */}
       {showPaystackModal && (
-        <div className="modal-overlay" onClick={() => setShowPaystackModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowPaystackModal(false)}
+        >
           <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowPaystackModal(false)}>
+            <button
+              className="modal-close"
+              onClick={() => setShowPaystackModal(false)}
+            >
               ×
             </button>
             <h2>Add Funds to Wallet</h2>
-            <form onSubmit={handleGeneratePaystackSession} style={{ marginTop: '1.5rem' }}>
+            <form
+              onSubmit={handleGeneratePaystackSession}
+              style={{ marginTop: "1.5rem" }}
+            >
               <div className="form-group">
                 <label>Full Name *</label>
                 <input
@@ -228,35 +252,36 @@ const Wallet = () => {
                 className="btn"
                 disabled={processingPaystack}
                 style={{
-                  width: '100%',
-                  padding: '1rem',
-                  marginTop: '1rem',
-                  backgroundColor: 'var(--primary-color)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: processingPaystack ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold',
+                  width: "100%",
+                  padding: "1rem",
+                  marginTop: "1rem",
+                  backgroundColor: "var(--primary-color)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: processingPaystack ? "not-allowed" : "pointer",
+                  fontWeight: "bold",
                 }}
               >
-                {processingPaystack ? 'Processing...' : 'Proceed to Payment'}
+                {processingPaystack ? "Processing..." : "Proceed to Payment"}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Info Section */}
-      <div style={{
-        maxWidth: '800px',
-        margin: '3rem auto',
-        padding: '2rem',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '8px',
-        borderLeft: '4px solid var(--primary-color)',
-      }}>
+      <div
+        style={{
+          maxWidth: "800px",
+          margin: "3rem auto",
+          padding: "2rem",
+          backgroundColor: "#f5f5f5",
+          borderRadius: "8px",
+          borderLeft: "4px solid var(--primary-color)",
+        }}
+      >
         <h3>ℹ️ How to Add Funds</h3>
-        <ol style={{ marginTop: '1rem', lineHeight: '1.8' }}>
+        <ol style={{ marginTop: "1rem", lineHeight: "1.8" }}>
           <li>Click the "Add Funds via Paystack" button above</li>
           <li>Enter your full name and desired amount</li>
           <li>Specify the number of coins you want to receive</li>

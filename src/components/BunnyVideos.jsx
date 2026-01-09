@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const API_BASE = 'https://toribox-api.onrender.com';
+const API_BASE = "https://toribox-api.onrender.com";
 
 const BunnyVideos = () => {
   const [videos, setVideos] = useState([]);
@@ -13,15 +13,14 @@ const BunnyVideos = () => {
   const fetchBunnyVideos = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/movies/list-bunny-videos`);
-      if (!res.ok) throw new Error('Failed to fetch Bunny videos');
+      if (!res.ok) throw new Error("Failed to fetch Bunny videos");
       const json = await res.json();
 
-      // Extract videos from response.items
       const videoList = json.response?.items || [];
       setVideos(videoList);
     } catch (err) {
       console.error(err);
-      alert('Failed to load Bunny videos');
+      alert("Failed to load Bunny videos");
       setVideos([]);
     } finally {
       setLoading(false);
@@ -37,9 +36,8 @@ const BunnyVideos = () => {
   };
 
   const handleDelete = async (guid) => {
-    if (!window.confirm('Delete this Bunny video permanently?')) return;
-    alert('Delete not implemented — add backend endpoint');
-    // Implement when delete endpoint is available
+    if (!window.confirm("Delete this Bunny video permanently?")) return;
+    alert("Delete not implemented — add backend endpoint");
   };
 
   if (loading) {
@@ -52,16 +50,30 @@ const BunnyVideos = () => {
 
   return (
     <div className="section fade-in">
-      <h1 style={{ fontSize: '2.8rem', margin: '2rem 0', color: 'var(--primary-color)', textAlign: 'center' }}>
+      <h1
+        style={{
+          fontSize: "2.8rem",
+          margin: "2rem 0",
+          color: "var(--primary-color)",
+          textAlign: "center",
+        }}
+      >
         Bunny Videos
       </h1>
 
-      <h2 style={{ margin: '2rem 0 1.5rem', fontSize: '2rem' }}>
+      <h2 style={{ margin: "2rem 0 1.5rem", fontSize: "2rem" }}>
         All Videos ({videos.length})
       </h2>
 
       {videos.length === 0 ? (
-        <p style={{ textAlign: 'center', fontSize: '1.3rem', color: '#888', margin: '4rem 0' }}>
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "1.3rem",
+            color: "#888",
+            margin: "4rem 0",
+          }}
+        >
           No Bunny videos found.
         </p>
       ) : (
@@ -69,8 +81,8 @@ const BunnyVideos = () => {
           {videos.map((video) => (
             <div key={video.guid} className="bunny-card">
               <div className="bunny-header">
-                <h3>{video.title || 'Untitled'}</h3>
-                <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>
+                <h3>{video.title || "Untitled"}</h3>
+                <p style={{ fontSize: "0.9rem", opacity: 0.8 }}>
                   Uploaded: {new Date(video.dateUploaded).toLocaleDateString()}
                 </p>
               </div>
@@ -92,7 +104,10 @@ const BunnyVideos = () => {
                 <div className="no-video">No MP4 fallback</div>
               )}
 
-              <button onClick={() => handleDelete(video.guid)} className="btn delete-btn">
+              <button
+                onClick={() => handleDelete(video.guid)}
+                className="btn delete-btn"
+              >
                 Delete Video
               </button>
             </div>

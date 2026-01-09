@@ -1,45 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-const API_BASE = 'https://toribox-api.onrender.com';
+const API_BASE = "https://toribox-api.onrender.com";
 
 const Login = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       const res = await fetch(`${API_BASE}/api/users/admin/signin`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Invalid email or password');
+        throw new Error(errorData.message || "Invalid email or password");
       }
 
       const data = await res.json();
       const token = data.token || data.data?.token;
-      
+
       if (!token) {
-        throw new Error('No token received from server');
+        throw new Error("No token received from server");
       }
 
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('adminEmail', email);
+      localStorage.setItem("adminToken", token);
+      localStorage.setItem("adminEmail", email);
       onLogin(token);
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+      console.error("Login error:", err);
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -66,9 +66,9 @@ const Login = ({ onLogin }) => {
           disabled={loading}
         />
         <button className="btn" type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? "Logging in..." : "Login"}
         </button>
-        {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+        {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
       </form>
     </div>
   );

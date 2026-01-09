@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
-const API_BASE = 'https://toribox-api.onrender.com';
+const API_BASE = "https://toribox-api.onrender.com";
 
 const Episodes = () => {
   const [movies, setMovies] = useState([]);
   const [episodes, setEpisodes] = useState([]);
-  const [selectedMovieId, setSelectedMovieId] = useState('');
+  const [selectedMovieId, setSelectedMovieId] = useState("");
   const [loadingMovies, setLoadingMovies] = useState(true);
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
-    movieId: '',
-    episodeNumber: '',
+    movieId: "",
+    episodeNumber: "",
     video: null,
   });
 
@@ -23,12 +23,12 @@ const Episodes = () => {
   const fetchMovies = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/movies/get`);
-      if (!res.ok) throw new Error('Failed');
+      if (!res.ok) throw new Error("Failed");
       const json = await res.json();
       setMovies(json.movie?.data || []);
     } catch (err) {
       console.error(err);
-      alert('Failed to load movies');
+      alert("Failed to load movies");
     } finally {
       setLoadingMovies(false);
     }
@@ -42,12 +42,12 @@ const Episodes = () => {
     setLoadingEpisodes(true);
     try {
       const res = await fetch(`${API_BASE}/api/movies/episode/get/${movieId}`);
-      if (!res.ok) throw new Error('Failed');
+      if (!res.ok) throw new Error("Failed");
       const json = await res.json();
       setEpisodes(json.episode?.data || []);
     } catch (err) {
       console.error(err);
-      alert('Failed to load episodes');
+      alert("Failed to load episodes");
       setEpisodes([]);
     } finally {
       setLoadingEpisodes(false);
@@ -73,66 +73,81 @@ const Episodes = () => {
     e.preventDefault();
 
     if (!formData.movieId || !formData.episodeNumber || !formData.video) {
-      alert('All fields are required');
+      alert("All fields are required");
       return;
     }
 
     setUploading(true);
 
     const uploadData = new FormData();
-    uploadData.append('movieId', formData.movieId);
-    uploadData.append('episode_count', formData.episodeNumber);
-    uploadData.append('video', formData.video);
+    uploadData.append("movieId", formData.movieId);
+    uploadData.append("episode_count", formData.episodeNumber);
+    uploadData.append("video", formData.video);
 
     try {
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem("adminToken");
       if (!token) {
-        alert('You must be logged in to upload. Please login again.');
+        alert("You must be logged in to upload. Please login again.");
         return;
       }
 
       const res = await fetch(`${API_BASE}/api/movies/episode/upload`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: uploadData,
       });
 
       if (res.ok) {
-        alert('Episode uploaded successfully!');
-        setFormData({ movieId: formData.movieId, episodeNumber: '', video: null });
+        alert("Episode uploaded successfully!");
+        setFormData({
+          movieId: formData.movieId,
+          episodeNumber: "",
+          video: null,
+        });
         setShowUploadModal(false);
         fetchEpisodes(formData.movieId);
       } else {
         const error = await res.json().catch(() => ({}));
-        alert('Upload failed: ' + (error.message || error.error?.message || 'Unknown error'));
+        alert(
+          "Upload failed: " +
+            (error.message || error.error?.message || "Unknown error")
+        );
       }
     } catch (err) {
       console.error(err);
-      alert('Upload error');
+      alert("Upload error");
     } finally {
       setUploading(false);
     }
   };
 
-
-
-  const selectedMovie = movies.find(m => m._id === selectedMovieId);
+  const selectedMovie = movies.find((m) => m._id === selectedMovieId);
 
   return (
     <div className="section fade-in">
-      <h1 style={{ fontSize: '2.8rem', margin: '2rem 0', color: 'var(--primary-color)', textAlign: 'center' }}>
+      <h1
+        style={{
+          fontSize: "2.8rem",
+          margin: "2rem 0",
+          color: "var(--primary-color)",
+          textAlign: "center",
+        }}
+      >
         Manage Episodes
       </h1>
 
-      {/* Movie Selector */}
       <div className="movie-selector card">
         <h2>Select Movie to Manage Episodes</h2>
         {loadingMovies ? (
           <p>Loading movies...</p>
         ) : (
-          <select value={selectedMovieId} onChange={handleMovieChange} className="movie-select">
+          <select
+            value={selectedMovieId}
+            onChange={handleMovieChange}
+            className="movie-select"
+          >
             <option value="">-- Choose a movie --</option>
             {movies.map((movie) => (
               <option key={movie._id} value={movie._id}>
@@ -143,17 +158,24 @@ const Episodes = () => {
         )}
       </div>
 
-      {/* Episodes Grid */}
       {selectedMovieId && (
         <>
-          <h2 style={{ margin: '3rem 0 1.5rem', fontSize: '2rem' }}>
-            Episodes for "{selectedMovie?.title || 'Unknown'}" ({episodes.length})
+          <h2 style={{ margin: "3rem 0 1.5rem", fontSize: "2rem" }}>
+            Episodes for "{selectedMovie?.title || "Unknown"}" (
+            {episodes.length})
           </h2>
 
           {loadingEpisodes ? (
-            <p style={{ textAlign: 'center' }}>Loading episodes...</p>
+            <p style={{ textAlign: "center" }}>Loading episodes...</p>
           ) : episodes.length === 0 ? (
-            <p style={{ textAlign: 'center', fontSize: '1.3rem', color: '#888', margin: '4rem 0' }}>
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: "1.3rem",
+                color: "#888",
+                margin: "4rem 0",
+              }}
+            >
               No episodes yet. Use the button below to upload!
             </p>
           ) : (
@@ -161,7 +183,7 @@ const Episodes = () => {
               {episodes.map((episode) => (
                 <div key={episode.episodeId} className="episode-card">
                   <div className="episode-header">
-                    <h3>Episode {episode.episode_count || 'N/A'}</h3>
+                    <h3>Episode {episode.episode_count || "N/A"}</h3>
                   </div>
 
                   {episode.stream ? (
@@ -172,7 +194,6 @@ const Episodes = () => {
                   ) : (
                     <div className="no-video">No video stream available</div>
                   )}
-
                 </div>
               ))}
             </div>
@@ -180,7 +201,6 @@ const Episodes = () => {
         </>
       )}
 
-      {/* Floating Upload Button */}
       <button
         className="floating-upload-btn"
         onClick={() => setShowUploadModal(true)}
@@ -189,18 +209,28 @@ const Episodes = () => {
         + Upload Episode
       </button>
 
-      {/* Upload Modal */}
       {showUploadModal && (
-        <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowUploadModal(false)}
+        >
           <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowUploadModal(false)}>
+            <button
+              className="modal-close"
+              onClick={() => setShowUploadModal(false)}
+            >
               ×
             </button>
             <h2>Upload New Episode</h2>
             <form onSubmit={handleUpload}>
               <div className="form-group">
                 <label>Movie ID</label>
-                <select name="movieId" value={formData.movieId} onChange={handleChange} required>
+                <select
+                  name="movieId"
+                  value={formData.movieId}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="">Select movie</option>
                   {movies.map((movie) => (
                     <option key={movie._id} value={movie._id}>
@@ -225,11 +255,20 @@ const Episodes = () => {
 
               <div className="form-group">
                 <label>Video File *</label>
-                <input type="file" accept="video/*" onChange={handleFileChange} required />
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleFileChange}
+                  required
+                />
               </div>
 
-              <button type="submit" className="btn upload-btn" disabled={uploading}>
-                {uploading ? 'Uploading...' : 'Upload Episode'}
+              <button
+                type="submit"
+                className="btn upload-btn"
+                disabled={uploading}
+              >
+                {uploading ? "Uploading..." : "Upload Episode"}
               </button>
             </form>
           </div>

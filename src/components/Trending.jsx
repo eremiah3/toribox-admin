@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
-const API_BASE = 'https://toribox-api.onrender.com';
+const API_BASE = "https://toribox-api.onrender.com";
 
 const Dashboard = () => {
   const [movieCount, setMovieCount] = useState(0);
@@ -12,27 +12,25 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch movies
         const moviesRes = await fetch(`${API_BASE}/api/movies/get`);
-        if (!moviesRes.ok) throw new Error('Failed');
+        if (!moviesRes.ok) throw new Error("Failed");
         const moviesJson = await moviesRes.json();
         const movies = moviesJson.movie?.data || [];
         setMovieCount(movies.length);
 
-        // Calculate total episodes
         let totalEpisodes = 0;
         for (const movie of movies) {
-          const episodesRes = await fetch(`${API_BASE}/api/movies/episode/get/${movie._id}`);
+          const episodesRes = await fetch(
+            `${API_BASE}/api/movies/episode/get/${movie._id}`
+          );
           if (episodesRes.ok) {
             const episodesJson = await episodesRes.json();
             totalEpisodes += (episodesJson.episode?.data || []).length;
           }
         }
         setEpisodeCount(totalEpisodes);
-
-
       } catch (err) {
-        console.error('Dashboard fetch error:', err);
+        console.error("Dashboard fetch error:", err);
       } finally {
         setLoading(false);
       }
@@ -43,13 +41,21 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard fade-in">
-      <h1 style={{ textAlign: 'center', marginBottom: '3rem', color: 'var(--primary-color)', fontSize: '2.8rem' }}>
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: "3rem",
+          color: "var(--primary-color)",
+          fontSize: "2.8rem",
+        }}
+      >
         Godlike Dashboard Overview
       </h1>
 
-      {/* Stats Section */}
       {loading ? (
-        <p style={{ textAlign: 'center', fontSize: '1.3rem' }}>Loading stats...</p>
+        <p style={{ textAlign: "center", fontSize: "1.3rem" }}>
+          Loading stats...
+        </p>
       ) : (
         <div className="dashboard-stats">
           <div className="stat-card">
@@ -64,30 +70,39 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Trending Movies Section */}
-      <div className="trending-section card" style={{ padding: '2rem', margin: '3rem 0' }}>
-        <h2 style={{ color: 'var(--primary-color)', marginBottom: '1.5rem', textAlign: 'center' }}>
+      <div
+        className="trending-section card"
+        style={{ padding: "2rem", margin: "3rem 0" }}
+      >
+        <h2
+          style={{
+            color: "var(--primary-color)",
+            marginBottom: "1.5rem",
+            textAlign: "center",
+          }}
+        >
           🔥 Trending Movies
         </h2>
 
         {loading ? (
-          <p style={{ textAlign: 'center' }}>Loading trending...</p>
+          <p style={{ textAlign: "center" }}>Loading trending...</p>
         ) : trendingMovies.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#888' }}>No movies yet</p>
+          <p style={{ textAlign: "center", color: "#888" }}>No movies yet</p>
         ) : (
           <div className="trending-grid">
             {trendingMovies.map((movie, index) => (
               <div key={movie._id} className="trending-card">
                 <span className="rank">#{index + 1}</span>
                 <h3>{movie.title}</h3>
-                <p>Views: {movie.views || 0} • Ratings: {movie.ratings || 0}</p>
+                <p>
+                  Views: {movie.views || 0} • Ratings: {movie.ratings || 0}
+                </p>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Quick Action Cards */}
       <div className="dashboard-grid">
         <Link to="/movies" className="god-card">
           <div className="card-icon">🎬</div>
