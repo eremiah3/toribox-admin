@@ -66,9 +66,8 @@ const Movies = () => {
     const genreList = formData.genre
       .split(',')
       .map(g => g.trim())
-      .filter(g => g.length > 0);
+      .filter(g => g.length > 0)
       .map(g => ({ title: g }));
-      
 
     if (genreList.length === 0) {
       alert('Please enter at least one genre');
@@ -77,7 +76,7 @@ const Movies = () => {
     }
 
     // Create genre array in exact format: [{"title":"Action"},{"title":"Fantasy"}]
-    const genreArray = genreList.map(title => ({ title }));
+    const genreArray = genreList;
 
     const uploadData = new FormData();
 
