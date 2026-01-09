@@ -134,28 +134,7 @@ const Movies = () => {
     }
   };
 
-  const handleDelete = async (movieId) => {
-    if (!window.confirm('Delete this movie permanently?')) return;
 
-    const token = localStorage.getItem('adminToken');
-
-    try {
-      const res = await fetch(`${API_BASE}/api/movies/${movieId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (res.ok) {
-        alert('Movie deleted');
-        fetchMovies();
-      } else {
-        alert('Delete failed');
-      }
-    } catch (err) {
-      alert('Delete error');
-    }
-  };
 
   const handleUploadSearchQuery = async (e) => {
     e.preventDefault();
@@ -302,21 +281,6 @@ const Movies = () => {
               ) : (
                 <p className="no-video">No video stream</p>
               )}
-
-              <button
-                onClick={() => handleDelete(movie._id)}
-                style={{
-                  marginTop: '12px',
-                  padding: '8px 16px',
-                  background: '#ff4d4f',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer'
-                }}
-              >
-                Delete Movie
-              </button>
             </div>
           ))}
         </div>

@@ -116,21 +116,7 @@ const Episodes = () => {
     }
   };
 
-  const handleDelete = async (episodeId) => {
-    if (!window.confirm('Delete this episode permanently?')) return;
 
-    try {
-      const res = await fetch(`${API_BASE}/api/movies/episode/${episodeId}`, { method: 'DELETE' });
-      if (res.ok) {
-        alert('Episode deleted');
-        fetchEpisodes(selectedMovieId);
-      } else {
-        alert('Delete failed');
-      }
-    } catch (err) {
-      alert('Delete error');
-    }
-  };
 
   const selectedMovie = movies.find(m => m._id === selectedMovieId);
 
@@ -187,9 +173,6 @@ const Episodes = () => {
                     <div className="no-video">No video stream available</div>
                   )}
 
-                  <button onClick={() => handleDelete(episode.episodeId)} className="btn delete-btn">
-                    Delete Episode
-                  </button>
                 </div>
               ))}
             </div>
