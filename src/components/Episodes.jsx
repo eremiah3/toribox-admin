@@ -14,6 +14,7 @@ const Episodes = () => {
     movieId: "",
     episodeNumber: "",
     video: null,
+    is_premium: false,
   });
 
   useEffect(() => {
@@ -22,10 +23,17 @@ const Episodes = () => {
 
   const fetchMovies = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/movies/get`);
+      const token = localStorage.getItem("adminToken");
+      const endpoint = token
+        ? `${API_BASE}/api/users/admin/movies/get`
+        : `${API_BASE}/api/movies/get`;
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const res = await fetch(endpoint, { headers });
       if (!res.ok) throw new Error("Failed");
       const json = await res.json();
-      setMovies(json.movie?.data || []);
+      const data = json.movie?.data || json.data || [];
+      setMovies(data);
     } catch (err) {
       console.error(err);
       alert("Failed to load movies");
@@ -62,7 +70,8 @@ const Episodes = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, type, value, checked } = e.target;
+    setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
   const handleFileChange = (e) => {
@@ -83,6 +92,7 @@ const Episodes = () => {
     uploadData.append("movieId", formData.movieId);
     uploadData.append("episode_count", formData.episodeNumber);
     uploadData.append("video", formData.video);
+    uploadData.append("is_premium", formData.is_premium ? "true" : "false");
 
     try {
       const token = localStorage.getItem("adminToken");
@@ -101,11 +111,7 @@ const Episodes = () => {
 
       if (res.ok) {
         alert("Episode uploaded successfully!");
-        setFormData({
-          movieId: formData.movieId,
-          episodeNumber: "",
-          video: null,
-        });
+        setFormData({ movieId: formData.movieId, episodeNumber: "", video: null, is_premium: false });
         setShowUploadModal(false);
         fetchEpisodes(formData.movieId);
       } else {
@@ -251,6 +257,18 @@ const Episodes = () => {
                   placeholder="e.g., 1"
                   required
                 />
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <input
+                    type="checkbox"
+                    name="is_premium"
+                    checked={!!formData.is_premium}
+                    onChange={handleChange}
+                  />
+                  Premium Episode
+                </label>
               </div>
 
               <div className="form-group">

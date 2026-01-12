@@ -25,10 +25,17 @@ const Movies = () => {
 
   const fetchMovies = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/movies/get`);
+      const token = localStorage.getItem("adminToken");
+      const endpoint = token
+        ? `${API_BASE}/api/users/admin/movies/get`
+        : `${API_BASE}/api/movies/get`;
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+      const res = await fetch(endpoint, { headers });
       if (!res.ok) throw new Error("Failed");
       const json = await res.json();
-      setMovies(json.movie?.data || []);
+      const data = json.movie?.data || json.data || [];
+      setMovies(data);
     } catch (err) {
       console.error(err);
       alert("Failed to load movies");
