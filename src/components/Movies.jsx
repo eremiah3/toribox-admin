@@ -522,7 +522,7 @@ const Movies = () => {
                       display: "block",
                     }}
                   >
-                    Separate genres with commas (e.g. Action, Fantasy)
+                    {/* Separate genres with commas (e.g. Action, Fantasy) */}
                   </small>
                 </div>
               </div>
@@ -547,7 +547,7 @@ const Movies = () => {
                   rows={5}
                   placeholder="Brief description about the movie..."
                   style={{
-                    width: "100%",
+                    width: "95%",
                     padding: "14px",
                     border: "1.5px solid #000",
                     borderRadius: "10px",
