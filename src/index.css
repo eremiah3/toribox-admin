@@ -92,9 +92,15 @@ p, label, span, li {
 }
 
 .navbar h1::before {
-  content: '🎥';
+  content: '';
+  background-image: url('/tori.jpg');
+  background-size: cover;
+  background-position: center;
+  width: 1.8rem;
+  height: 1.8rem;
   margin-right: 0.5rem;
-  font-size: 1.8rem;
+  display: inline-block;
+  border-radius: 50%;
 }
 
 .nav-buttons {

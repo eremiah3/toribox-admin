@@ -40,7 +40,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard fade-in">
-      <h1>ToriBOX Admin Dashboard</h1>
+      {/* <h1>ToriBOX Admin Dashboard</h1> */}
 
       {loading ? (
         <p
