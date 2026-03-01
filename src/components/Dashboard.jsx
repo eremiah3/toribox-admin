@@ -17,15 +17,12 @@ const Dashboard = () => {
         const movies = moviesJson.movie?.data || [];
         setMovieCount(movies.length);
 
+        // ✅ FIX: Count episodes directly from the embedded movie.episodes array
+        // (includes both free AND premium episodes) instead of calling a separate
+        // endpoint that was returning incomplete data
         let totalEpisodes = 0;
         for (const movie of movies) {
-          const episodesRes = await fetch(
-            `${API_BASE}/api/movies/episode/get/${movie._id}`
-          );
-          if (episodesRes.ok) {
-            const episodesJson = await episodesRes.json();
-            totalEpisodes += (episodesJson.episode?.data || []).length;
-          }
+          totalEpisodes += (movie.episodes || []).length;
         }
         setEpisodeCount(totalEpisodes);
       } catch (err) {
@@ -40,12 +37,8 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard fade-in">
-      {/* <h1>ToriBOX Admin Dashboard</h1> */}
-
       {loading ? (
-        <p
-          style={{ textAlign: "center", fontSize: "1.2rem", margin: "2rem 0" }}
-        >
+        <p style={{ textAlign: "center", fontSize: "1.2rem", margin: "2rem 0" }}>
           Loading stats...
         </p>
       ) : (
@@ -70,38 +63,22 @@ const Dashboard = () => {
           gap: "2rem",
         }}
       >
-        <Link
-          to="/movies"
-          className="card"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
+        <Link to="/movies" className="card" style={{ textDecoration: "none", color: "inherit" }}>
           <h2>🎬 Manage Movies</h2>
           <p>Upload new films & metadata</p>
         </Link>
 
-        <Link
-          to="/episodes"
-          className="card"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
+        <Link to="/episodes" className="card" style={{ textDecoration: "none", color: "inherit" }}>
           <h2>📺 Manage Episodes</h2>
           <p>Add episodes to series</p>
         </Link>
 
-        <Link
-          to="/transactions"
-          className="card"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
+        <Link to="/transactions" className="card" style={{ textDecoration: "none", color: "inherit" }}>
           <h2>💳 Transactions</h2>
           <p>View all user transactions</p>
         </Link>
 
-        <Link
-          to="/wallet"
-          className="card"
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
+        <Link to="/wallet" className="card" style={{ textDecoration: "none", color: "inherit" }}>
           <h2>💰 Wallet</h2>
           <p>Manage wallet & add funds</p>
         </Link>
