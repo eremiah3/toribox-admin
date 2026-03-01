@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_BASE = "https://toribox-api.onrender.com";
+const API_BASE = "https://api.tori-box.com";
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");

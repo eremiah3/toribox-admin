@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const API_BASE = "https://toribox-api.onrender.com";
+const API_BASE = "https://api.tori-box.com";
 
 const Dashboard = () => {
   const [movieCount, setMovieCount] = useState(0);

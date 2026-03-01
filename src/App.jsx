@@ -10,7 +10,7 @@ import Wallet from './components/Wallet.jsx';
 import Navbar from './components/Navbar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
-const API_BASE_URL = 'https://toribox-api.onrender.com';
+const API_BASE_URL = 'https://api.tori-box.com';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
