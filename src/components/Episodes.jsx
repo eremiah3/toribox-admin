@@ -16,6 +16,7 @@ const Episodes = () => {
   const [loadingEpisodes, setLoadingEpisodes] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadPercentage, setUploadPercentage] = useState(0);
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -113,10 +114,29 @@ const Episodes = () => {
       });
 
       // Merge: embedded = full list + premium flag, streamMap = stream URLs
-      const merged = embeddedEpisodes.map((ep) => ({
-        ...ep,
-        stream: streamMap[ep.episodeId] || null,
-      }));
+      const merged = await Promise.all(
+        embeddedEpisodes.map(async (ep) => {
+          let stream = streamMap[ep.episodeId] || null;
+          if (isPremium(ep) && !stream && token) {
+            try {
+              const episodeRes = await fetch(
+                `${API_BASE}/api/movies/episode/get/single/${ep.episodeId}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              if (episodeRes.ok) {
+                const episodeJson = await episodeRes.json();
+                stream = episodeJson.data?.stream || episodeJson.data?.HLSStream || null;
+              }
+            } catch (e) {
+              console.error(
+                `Failed to fetch stream for premium episode ${ep.episodeId}`,
+                e
+              );
+            }
+          }
+          return { ...ep, stream };
+        })
+      );
 
       merged.sort((a, b) => (a.episode_count || 0) - (b.episode_count || 0));
       console.log("Final merged episodes:", merged);
@@ -161,23 +181,39 @@ const Episodes = () => {
     uploadData.append("episode_count", formData.episodeNumber);
     uploadData.append("video", formData.video);
     uploadData.append("is_premium", formData.is_premium ? "true" : "false");
-    try {
-      const token = localStorage.getItem("adminToken");
-      if (!token) {
-        alert("You must be logged in to upload. Please login again.");
-        return;
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/api/movies/episode/upload`, true);
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+      alert("You must be logged in to upload. Please login again.");
+      setUploading(false);
+      return;
+    }
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentage = Math.round((event.loaded * 100) / event.total);
+        setUploadPercentage(percentage);
       }
-      const res = await fetch(`${API_BASE}/api/movies/episode/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: uploadData,
-      });
-      if (res.ok) {
+    };
+
+    xhr.onload = async () => {
+      setUploading(false);
+      if (xhr.status === 200) {
         alert("Episode uploaded successfully!");
-        setFormData({ movieId: formData.movieId, episodeNumber: "", video: null, is_premium: true });
+        setFormData({
+          movieId: formData.movieId,
+          episodeNumber: "",
+          video: null,
+          is_premium: true,
+        });
         setShowUploadModal(false);
         const token2 = localStorage.getItem("adminToken");
-        const endpoint = token2 ? `${API_BASE}/api/users/admin/movies/get` : `${API_BASE}/api/movies/get`;
+        const endpoint = token2
+          ? `${API_BASE}/api/users/admin/movies/get`
+          : `${API_BASE}/api/movies/get`;
         const headers2 = token2 ? { Authorization: `Bearer ${token2}` } : {};
         const moviesRes = await fetch(endpoint, { headers: headers2 });
         if (moviesRes.ok) {
@@ -187,15 +223,20 @@ const Episodes = () => {
           await loadEpisodesForMovie(formData.movieId, updatedMovies);
         }
       } else {
-        const errBody = await res.json().catch(() => ({}));
-        alert("Upload failed: " + (errBody.message || errBody.error?.message || "Unknown error"));
+        const errBody = JSON.parse(xhr.responseText || "{}");
+        alert(
+          "Upload failed: " +
+            (errBody.message || errBody.error?.message || "Unknown error")
+        );
       }
-    } catch (err) {
-      console.error(err);
-      alert("Upload error");
-    } finally {
+    };
+
+    xhr.onerror = () => {
       setUploading(false);
-    }
+      alert("Upload error. Please check your network connection and try again.");
+    };
+
+    xhr.send(uploadData);
   };
 
   const selectedMovie = movies.find((m) => m._id === selectedMovieId);
@@ -363,7 +404,9 @@ const Episodes = () => {
                 <input type="file" accept="video/*" onChange={handleFileChange} required />
               </div>
               <button type="submit" className="btn upload-btn" disabled={uploading}>
-                {uploading ? "Uploading..." : "Upload Episode"}
+                {uploading
+                  ? `Uploading... ${uploadPercentage}%`
+                  : "Upload Episode"}
               </button>
             </form>
           </div>

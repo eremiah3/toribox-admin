@@ -7,12 +7,14 @@ const Movies = () => {
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadPercentage, setUploadPercentage] = useState(0);
   const [formData, setFormData] = useState({
     title: "",
     genre: "",
     description: "",
     coverImage: null,
     video: null,
+    comingSoon: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -34,8 +36,24 @@ const Movies = () => {
       const res = await fetch(endpoint, { headers });
       if (!res.ok) throw new Error("Failed");
       const json = await res.json();
-      const data = json.movie?.data || json.data || [];
-      setMovies(data);
+      let moviesData = json.movie?.data || json.data || [];
+
+      if (token) {
+        const moviePromises = moviesData.map(async (movie) => {
+          const movieRes = await fetch(
+            `${API_BASE}/api/movies/get/single/${movie._id}`,
+            { headers }
+          );
+          if (movieRes.ok) {
+            const movieJson = await movieRes.json();
+            return movieJson.data;
+          }
+          return movie;
+        });
+        moviesData = await Promise.all(moviePromises);
+      }
+
+      setMovies(moviesData);
     } catch (err) {
       console.error(err);
       alert("Failed to load movies");
@@ -98,18 +116,22 @@ const Movies = () => {
     uploadData.append("description", formData.description.trim());
     // Append each genre as separate field to create array on server
     genreArray.forEach((g) => uploadData.append("genre", JSON.stringify(g)));
-    uploadData.append("coming_soon", "");
+    uploadData.append("coming_soon", formData.comingSoon);
 
-    try {
-      const res = await fetch(`${API_BASE}/api/movies/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: uploadData,
-      });
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/api/movies/upload`, true);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
-      if (res.ok) {
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percentage = Math.round((event.loaded * 100) / event.total);
+        setUploadPercentage(percentage);
+      }
+    };
+
+    xhr.onload = async () => {
+      setUploading(false);
+      if (xhr.status === 200) {
         alert("Movie uploaded successfully!");
         setFormData({
           title: "",
@@ -117,11 +139,12 @@ const Movies = () => {
           description: "",
           coverImage: null,
           video: null,
+          comingSoon: "",
         });
         setShowUploadModal(false);
         fetchMovies();
       } else {
-        const errorData = await res.json().catch(() => ({}));
+        const errorData = JSON.parse(xhr.responseText || "{}");
         let errorMessage = "Unknown error";
 
         if (typeof errorData === "string") {
@@ -132,18 +155,20 @@ const Movies = () => {
           errorMessage = errorData.message;
         }
 
-        if (res.status === 401 || res.status === 403) {
+        if (xhr.status === 401 || xhr.status === 403) {
           alert("Authentication failed. Please log in again.");
         } else {
           alert(`Upload failed: ${errorMessage}`);
         }
       }
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload error — check network or file size");
-    } finally {
+    };
+
+    xhr.onerror = () => {
       setUploading(false);
-    }
+      alert("Upload error — check network or file size");
+    };
+
+    xhr.send(uploadData);
   };
 
   const handleUploadSearchQuery = async (e) => {
@@ -653,6 +678,27 @@ const Movies = () => {
                   </div>
                 </div>
               </div>
+              <div style={{ marginBottom: "28px" }}>
+                <label>
+                  Coming Soon
+                  <input
+                    type="text"
+                    name="comingSoon"
+                    value={formData.comingSoon}
+                    onChange={handleTextChange}
+                    placeholder="e.g., Next week, or a specific date"
+                    style={{
+                      width: "95%",
+                      padding: "14px",
+                      border: "1.5px solid #000",
+                      borderRadius: "10px",
+                      fontSize: "15px",
+                      color: "#000",
+                      marginTop: "8px",
+                    }}
+                  />
+                </label>
+              </div>
 
               <button
                 type="submit"
@@ -674,7 +720,9 @@ const Movies = () => {
                     : "0 4px 14px rgba(102,126,234,0.35)",
                 }}
               >
-                {uploading ? "Uploading... Please wait" : "Upload Movie"}
+                {uploading
+                  ? `Uploading... ${uploadPercentage}%`
+                  : "Upload Movie"}
               </button>
             </form>
           </div>

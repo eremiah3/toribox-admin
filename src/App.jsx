@@ -7,6 +7,7 @@ import Movies from './components/Movies.jsx';
 import Episodes from './components/Episodes.jsx';
 import Transactions from './components/Transactions.jsx';
 import Wallet from './components/Wallet.jsx';
+import ComingSoon from './components/ComingSoon.jsx';
 import Navbar from './components/Navbar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 
@@ -75,6 +76,7 @@ function App() {
               <Route path="/episodes" element={<Episodes apiBaseUrl={API_BASE_URL} />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/wallet" element={<Wallet />} />
+              <Route path="/coming-soon" element={<ComingSoon />} />
               {/* Add more routes here later */}
             </Routes>
           </div>
