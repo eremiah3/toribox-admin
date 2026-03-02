@@ -50,7 +50,8 @@ const Episodes = () => {
     }
   };
 
-  const loadEpisodesForMovie = async (movieId, moviesList = movies) => {
+  // Fetch ALL pages of episodes for a movie
+  const loadEpisodesForMovie = async (movieId) => {
     if (!movieId) {
       setEpisodes([]);
       return;
@@ -60,87 +61,48 @@ const Episodes = () => {
 
     try {
       const token = localStorage.getItem("adminToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      // Use admin endpoint with token to get ALL episodes including premium
-      const adminEpisodeEndpoint = `${API_BASE}/api/users/admin/movies/episode/get/${movieId}`;
-      const publicEpisodeEndpoint = `${API_BASE}/api/movies/episode/get/${movieId}`;
-
-      let apiEpisodes = [];
-
-      // Try admin endpoint first (returns premium + free with stream URLs)
-      if (token) {
-        const adminRes = await fetch(adminEpisodeEndpoint, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (adminRes.ok) {
-          const adminJson = await adminRes.json();
-          console.log("Admin episode response:", adminJson);
-          apiEpisodes =
-            adminJson.episode?.data ||
-            adminJson.episodes?.data ||
-            adminJson.data ||
-            adminJson.episodes ||
-            [];
-        }
-      }
-
-      // If admin endpoint returned nothing, fall back to public endpoint
-      if (apiEpisodes.length === 0) {
-        const pubRes = await fetch(publicEpisodeEndpoint);
-        if (pubRes.ok) {
-          const pubJson = await pubRes.json();
-          console.log("Public episode response:", pubJson);
-          apiEpisodes =
-            pubJson.episode?.data ||
-            pubJson.episodes?.data ||
-            pubJson.data ||
-            pubJson.episodes ||
-            [];
-        }
-      }
-
-      // Use embedded movie.episodes as the master list for all episode IDs + premium flags
-      const movie = moviesList.find((m) => m._id === movieId);
-      const embeddedEpisodes = movie?.episodes || [];
-
-      console.log("API episodes:", apiEpisodes);
-      console.log("Embedded episodes:", embeddedEpisodes);
-
-      // Build stream map from API response
-      const streamMap = {};
-      apiEpisodes.forEach((ep) => {
-        const id = ep.episodeId || ep._id;
-        if (id) streamMap[id] = ep.stream || ep.HLSStream || null;
-      });
-
-      // Merge: embedded = full list + premium flag, streamMap = stream URLs
-      const merged = await Promise.all(
-        embeddedEpisodes.map(async (ep) => {
-          let stream = streamMap[ep.episodeId] || null;
-          if (isPremium(ep) && !stream && token) {
-            try {
-              const episodeRes = await fetch(
-                `${API_BASE}/api/movies/episode/get/single/${ep.episodeId}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              if (episodeRes.ok) {
-                const episodeJson = await episodeRes.json();
-                stream = episodeJson.data?.stream || episodeJson.data?.HLSStream || null;
-              }
-            } catch (e) {
-              console.error(
-                `Failed to fetch stream for premium episode ${ep.episodeId}`,
-                e
-              );
-            }
-          }
-          return { ...ep, stream };
-        })
+      // Fetch page 1 first to get totalPages
+      const firstRes = await fetch(
+        `${API_BASE}/api/movies/episode/get/${movieId}?page=1&limit=100`,
+        { headers }
       );
+      if (!firstRes.ok) throw new Error(`Failed to fetch episodes (${firstRes.status})`);
+      const firstJson = await firstRes.json();
 
-      merged.sort((a, b) => (a.episode_count || 0) - (b.episode_count || 0));
-      console.log("Final merged episodes:", merged);
-      setEpisodes(merged);
+      const totalPages = firstJson.episode?.pagination?.totalPages || 1;
+      let allEpisodes = firstJson.episode?.data || [];
+
+      // Fetch remaining pages if any
+      if (totalPages > 1) {
+        const pagePromises = [];
+        for (let page = 2; page <= totalPages; page++) {
+          pagePromises.push(
+            fetch(`${API_BASE}/api/movies/episode/get/${movieId}?page=${page}&limit=100`, { headers })
+              .then((r) => r.json())
+              .then((j) => j.episode?.data || [])
+          );
+        }
+        const remainingPages = await Promise.all(pagePromises);
+        remainingPages.forEach((pageData) => {
+          allEpisodes = [...allEpisodes, ...pageData];
+        });
+      }
+
+      console.log(`Fetched ${allEpisodes.length} episodes across ${totalPages} pages`);
+
+      // Normalise field names — API uses _id and episodeCount
+      const normalised = allEpisodes.map((ep) => ({
+        ...ep,
+        episodeId: ep.episodeId || ep._id,
+        episode_count: ep.episode_count || ep.episodeCount,
+      }));
+
+      // Sort by episode number
+      normalised.sort((a, b) => (a.episode_count || 0) - (b.episode_count || 0));
+
+      setEpisodes(normalised);
     } catch (err) {
       console.error("Load episodes error:", err);
       setError(err.message);
@@ -176,26 +138,28 @@ const Episodes = () => {
       return;
     }
     setUploading(true);
+    setUploadPercentage(0);
+
     const uploadData = new FormData();
     uploadData.append("movieId", formData.movieId);
     uploadData.append("episode_count", formData.episodeNumber);
     uploadData.append("video", formData.video);
     uploadData.append("is_premium", formData.is_premium ? "true" : "false");
 
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", `${API_BASE}/api/movies/episode/upload`, true);
     const token = localStorage.getItem("adminToken");
     if (!token) {
       alert("You must be logged in to upload. Please login again.");
       setUploading(false);
       return;
     }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}/api/movies/episode/upload`, true);
     xhr.setRequestHeader("Authorization", `Bearer ${token}`);
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) {
-        const percentage = Math.round((event.loaded * 100) / event.total);
-        setUploadPercentage(percentage);
+        setUploadPercentage(Math.round((event.loaded * 100) / event.total));
       }
     };
 
@@ -203,31 +167,14 @@ const Episodes = () => {
       setUploading(false);
       if (xhr.status === 200) {
         alert("Episode uploaded successfully!");
-        setFormData({
-          movieId: formData.movieId,
-          episodeNumber: "",
-          video: null,
-          is_premium: true,
-        });
+        setFormData({ movieId: formData.movieId, episodeNumber: "", video: null, is_premium: true });
+        setUploadPercentage(0);
         setShowUploadModal(false);
-        const token2 = localStorage.getItem("adminToken");
-        const endpoint = token2
-          ? `${API_BASE}/api/users/admin/movies/get`
-          : `${API_BASE}/api/movies/get`;
-        const headers2 = token2 ? { Authorization: `Bearer ${token2}` } : {};
-        const moviesRes = await fetch(endpoint, { headers: headers2 });
-        if (moviesRes.ok) {
-          const json = await moviesRes.json();
-          const updatedMovies = json.movie?.data || json.data || [];
-          setMovies(updatedMovies);
-          await loadEpisodesForMovie(formData.movieId, updatedMovies);
-        }
+        await fetchMovies();
+        await loadEpisodesForMovie(formData.movieId);
       } else {
         const errBody = JSON.parse(xhr.responseText || "{}");
-        alert(
-          "Upload failed: " +
-            (errBody.message || errBody.error?.message || "Unknown error")
-        );
+        alert("Upload failed: " + (errBody.message || errBody.error?.message || "Unknown error"));
       }
     };
 
@@ -336,19 +283,13 @@ const Episodes = () => {
                         )}
                       </div>
 
-                      {episode.stream ? (
-                        <video
-                          controls
-                          style={{ width: "100%", marginTop: "0.75rem", borderRadius: "8px", background: "#000" }}
-                        >
-                          <source src={episode.stream} type="video/mp4" />
-                          Your browser does not support the video.
-                        </video>
-                      ) : (
-                        <div style={{ marginTop: "0.75rem", padding: "2rem", background: "#1a1a1a", borderRadius: "8px", textAlign: "center", color: "#666", fontSize: "0.9rem" }}>
-                          ⏳ Video processing...
-                        </div>
-                      )}
+                      <video
+                        controls
+                        style={{ width: "100%", marginTop: "0.75rem", borderRadius: "8px", background: "#000" }}
+                      >
+                        <source src={episode.stream} type="video/mp4" />
+                        Your browser does not support the video.
+                      </video>
 
                       <div style={{ marginTop: "1rem", padding: "0.5rem", background: "#f5f5f5", borderRadius: "6px" }}>
                         <p style={{ margin: "0.3rem 0", fontSize: "0.9rem" }}>
@@ -404,9 +345,7 @@ const Episodes = () => {
                 <input type="file" accept="video/*" onChange={handleFileChange} required />
               </div>
               <button type="submit" className="btn upload-btn" disabled={uploading}>
-                {uploading
-                  ? `Uploading... ${uploadPercentage}%`
-                  : "Upload Episode"}
+                {uploading ? `Uploading... ${uploadPercentage}%` : "Upload Episode"}
               </button>
             </form>
           </div>
