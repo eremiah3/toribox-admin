@@ -13,16 +13,13 @@ const ComingSoon = () => {
   const fetchMovies = async () => {
     try {
       const token = localStorage.getItem("adminToken");
-      const endpoint = `${API_BASE}/api/users/admin/movies/get`;
+      const endpoint = `${API_BASE}/api/users/admin/movies/get/coming-soon`;
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const res = await fetch(endpoint, { headers });
       if (!res.ok) throw new Error("Failed");
       const json = await res.json();
-      const allMovies = json.movie?.data || json.data || [];
-      const comingSoonMovies = allMovies.filter(
-        (movie) => movie.coming_soon && movie.coming_soon.trim() !== ""
-      );
+      const comingSoonMovies = json.movie?.data || json.data || [];
       setMovies(comingSoonMovies);
     } catch (err) {
       console.error(err);
