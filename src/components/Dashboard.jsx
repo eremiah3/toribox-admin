@@ -78,10 +78,10 @@ const Dashboard = () => {
           <p>View all user transactions</p>
         </Link>
 
-        <Link to="/wallet" className="card" style={{ textDecoration: "none", color: "inherit" }}>
+        {/* <Link to="/wallet" className="card" style={{ textDecoration: "none", color: "inherit" }}>
           <h2>💰 Wallet</h2>
           <p>Manage wallet & add funds</p>
-        </Link>
+        </Link> */}
       </div>
     </div>
   );

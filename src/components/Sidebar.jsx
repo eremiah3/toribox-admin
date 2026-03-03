@@ -10,7 +10,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: "/episodes", name: "Episodes", icon: "📺" },
     { path: "/coming-soon", name: "Coming Soon", icon: "⏳" },
     { path: "/transactions", name: "Transactions", icon: "💳" },
-    { path: "/wallet", name: "Wallet", icon: "💰" },
+    // { path: "/wallet", name: "Wallet", icon: "💰" },
   ];
 
   return (
