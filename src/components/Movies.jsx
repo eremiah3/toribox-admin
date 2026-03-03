@@ -109,12 +109,10 @@ const Movies = () => {
 
     const uploadData = new FormData();
 
-    // Add fields in exact order the backend expects
     uploadData.append("video", formData.video);
     uploadData.append("image", formData.coverImage);
     uploadData.append("title", formData.title.trim());
     uploadData.append("description", formData.description.trim());
-    // Append each genre as separate field to create array on server
     genreArray.forEach((g) => uploadData.append("genre", JSON.stringify(g)));
     uploadData.append("coming_soon", formData.comingSoon);
 
@@ -271,6 +269,9 @@ const Movies = () => {
       alert("Network error. Please try again.");
     }
   };
+
+  // Get today's date in YYYY-MM-DD format for the min attribute
+  const today = new Date().toISOString().split("T")[0];
 
   if (loading) {
     return (
@@ -539,16 +540,6 @@ const Movies = () => {
                       color: "#000",
                     }}
                   />
-                  <small
-                    style={{
-                      color: "#000",
-                      fontSize: "12.5px",
-                      marginTop: "6px",
-                      display: "block",
-                    }}
-                  >
-                    {/* Separate genres with commas (e.g. Action, Fantasy) */}
-                  </small>
                 </div>
               </div>
 
@@ -678,26 +669,54 @@ const Movies = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Coming Soon — Date Picker */}
               <div style={{ marginBottom: "28px" }}>
-                <label>
-                  Coming Soon
-                  <input
-                    type="text"
-                    name="comingSoon"
-                    value={formData.comingSoon}
-                    onChange={handleTextChange}
-                    placeholder="e.g., Next week, or a specific date"
-                    style={{
-                      width: "95%",
-                      padding: "14px",
-                      border: "1.5px solid #000",
-                      borderRadius: "10px",
-                      fontSize: "15px",
-                      color: "#000",
-                      marginTop: "8px",
-                    }}
-                  />
+                <label
+                  style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    fontWeight: 600,
+                    fontSize: "15px",
+                    color: "#000",
+                  }}
+                >
+                  Coming Soon Date
                 </label>
+                <input
+                  type="date"
+                  name="comingSoon"
+                  value={formData.comingSoon}
+                  onChange={handleTextChange}
+                  min={today}
+                  style={{
+                    width: "95%",
+                    padding: "14px",
+                    border: "1.5px solid #000",
+                    borderRadius: "10px",
+                    fontSize: "15px",
+                    color: formData.comingSoon ? "#000" : "#999",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                />
+                {formData.comingSoon && (
+                  <small
+                    style={{
+                      display: "block",
+                      marginTop: "6px",
+                      color: "#667eea",
+                      fontSize: "13px",
+                      fontWeight: 500,
+                    }}
+                  >
+                    📅 Releasing on{" "}
+                    {new Date(formData.comingSoon + "T00:00:00").toLocaleDateString(
+                      "en-US",
+                      { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+                    )}
+                  </small>
+                )}
               </div>
 
               <button
